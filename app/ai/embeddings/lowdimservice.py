@@ -10,6 +10,7 @@ __author__ = "Carlos Moreno Morera"
 
 from typing import List, Tuple, cast
 import numpy as np
+from loguru import logger
 
 import gensim.downloader as api
 from gensim.models import KeyedVectors
@@ -29,8 +30,12 @@ class LowDimEmbeddingService(EmbeddingService):
         Initialize the local embedding model. Will download the model on
         first run.
         """
-        self.__model: KeyedVectors = cast(KeyedVectors, api.load(model_name))
-        self.__vector_size: int = self.__model.vector_size
+        try:
+            self.__model: KeyedVectors = cast(KeyedVectors, api.load(model_name))
+            self.__vector_size: int = self.__model.vector_size
+        except Exception as e:
+            logger.error(f"Fallo al cargar el modelo {model_name}. Verifica GENSIM_DATA_DIR. Detalles: {e}")
+            raise RuntimeError(f"Error crítico cargando modelo de embeddings: {e}")
 
     def get_embedding(self, text: str) -> np.ndarray:
         # Preprocess text to lowercase as GloVe vocabulary is case-sensitive

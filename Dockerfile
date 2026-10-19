@@ -16,8 +16,11 @@ COPY ./app ./app
 
 ENV PATH="/workspace/.venv/bin:$PATH"
 
+ENV GENSIM_DATA_DIR=/app/models
+
 # Expose the port
 EXPOSE 8080
 
+RUN uv run python -c "import gensim.downloader as api; api.load('glove-wiki-gigaword-50')"
 # Command to run the server
 CMD ["python", "-m", "app.main"]

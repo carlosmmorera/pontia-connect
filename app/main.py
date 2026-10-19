@@ -9,6 +9,11 @@ from nicegui import app, ui
 
 from app.ui.pages import create_embeddings_page
 
+def filtrar_gensim(record):
+    if record["name"] == "gensim.downloader":
+        return record["level"].no >= logger.level("WARNING").no
+    return True
+
 def setup_logging():
     """Configures Loguru to output structured logs to stdout and a 
     rolling file."""
@@ -31,6 +36,8 @@ def setup_logging():
         format=("{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:"
                 + "{line} | {message}")
     )
+
+    logger.add(sys.stderr, level="DEBUG", filter=filtrar_gensim)
 
 # NiceGUI lifecycle events
 @app.on_startup
