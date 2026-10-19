@@ -218,3 +218,44 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+
+# -------------------------------------------------------------------------
+# IGNORE PARA TERRAFORM
+# -------------------------------------------------------------------------
+
+# Directorios de configuración local y plugins descargados (pesan mucho)
+**/.terraform/
+**/.terraform/*
+
+# Archivos de estado de Terraform
+*.tfstate
+*.tfstate.*
+
+# Archivos de variables con información sensible o específica del entorno
+*.tfvars
+*.tfvars.json
+*.auto.tfvars
+
+# Archivos de volcado de errores
+crash.log
+crash.*.log
+
+# Archivos de planes de ejecución generados con terraform plan -out=...
+*.tfplan
+*tfplan*
+
+# Archivos de sobreescritura local (para pruebas locales)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# -------------------------------------------------------------------------
+# IGNORE PARA CREDENCIALES Y CLAVES DE GOOGLE CLOUD
+# -------------------------------------------------------------------------
+*.json
+*.pem
+*.key
+.env
