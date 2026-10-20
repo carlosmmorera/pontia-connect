@@ -1,1 +1,2 @@
 from .embeddings import create_embeddings_page
+from .generator import create_generator_page

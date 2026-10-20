@@ -50,6 +50,7 @@ jobs:
           service: ${{ secrets.GCP_SERVICE_NAME }}
           region: ${{ secrets.GCP_REGION }}
           image: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_REPOSITORY_NAME }}/${{ secrets.GCP_SERVICE_NAME }}:${{ github.sha }}
+          flags: '--max-instances=2 --min-instances=0'
 
       - name: Display Service URL
         run: echo "Service deployed successfully to ${{ steps.deploy.outputs.url }}"

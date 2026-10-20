@@ -1,0 +1,16 @@
+# compose.yaml
+services:
+  api:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    image: genai-demo:local
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp/adc.json
+
+    volumes:
+      - ${LOCAL_GCP_CREDS_PATH}:/tmp/gcp/adc.json:ro

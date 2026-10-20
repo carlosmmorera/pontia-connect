@@ -21,3 +21,18 @@ def apply_theme():
     
     # Global CSS for consistent component styling
     ui.add_head_html('<link href="/static/style.css" rel="stylesheet">')
+
+    # Global Navigation Header
+    with ui.header().classes(
+        'items-center justify-between bg-dark border-b border-gray-700 p-4'):
+        ui.label(
+            'PontIA Connect: GenAI Engine'
+        ).classes('text-2xl font-bold text-primary')
+        
+        with ui.row().classes('gap-6'):
+            ui.link('1. Tokens & Embeddings', '/').classes(
+                'text-white text-lg font-semibold hover:text-secondary transition-colors no-underline'
+            )
+            ui.link('2. Generation & Probabilities', '/generator').classes(
+                'text-white text-lg font-semibold hover:text-secondary transition-colors no-underline'
+            )

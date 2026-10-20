@@ -18,4 +18,5 @@ module "genai_app" {
   region       = var.region
   environment  = var.environment
   service_name = var.service_name
+  github_repository = var.github_repository
 }
