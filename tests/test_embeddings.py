@@ -7,7 +7,7 @@ dependencies to avoid network calls and heavy downloads during CI/CD.
 
 import pytest
 import numpy as np
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 
 from app.ai.embeddings import (
     EmbeddingService, 
@@ -70,25 +70,71 @@ def test_low_dim_embedding_service(mock_api_load):
     assert oov_vec[0] == 0.0
 
 
-@patch("app.ai.embeddings.highdimservice.TextEmbeddingModel.from_pretrained")
-def test_high_dim_embedding_service(mock_from_pretrained):
+@patch("app.ai.embeddings.highdimservice.genai.Client")
+def test_high_dim_embedding_service(mock_genai_client):
     """Test the Vertex AI HighDimEmbeddingService with a mocked SDK."""
     
     # Setup the mock Vertex AI model response
-    mock_model_instance = MagicMock()
+    mock_client_instance = MagicMock()
+    mock_response = MagicMock()
     mock_embedding = MagicMock()
-    mock_embedding.values = [0.1] * 768
-    mock_model_instance.get_embeddings.return_value = [mock_embedding]
     
-    mock_from_pretrained.return_value = mock_model_instance
+    mock_embedding.values = [0.1] * 256
+    mock_response.embeddings = [mock_embedding]
+
+    mock_client_instance.models.embed_content.return_value = mock_response
+    mock_genai_client.return_value = mock_client_instance
     
-    service = HighDimEmbeddingService("dummy-vertex-model")
+    service = HighDimEmbeddingService("dummy-vertex-model", output_dimensionality=256)
     
     # Test getting an embedding
     vec = service.get_embedding("Hello Generative AI")
-    assert vec.shape == (768,)
-    assert vec[0] == 0.1
+    assert vec.shape == (256,)
+    assert np.isclose(vec[0], 0.1)
+    assert vec.dtype == np.float32
     
     # Test that reverse search raises NotImplementedError
     with pytest.raises(NotImplementedError):
         service.get_closest_words(vec)
+
+@pytest.mark.asyncio
+@patch("app.ai.embeddings.highdimservice.genai.Client")
+async def test_high_dim_embedding_service_async(mock_genai_client):
+    """Test the asynchronous embedding generation."""
+    
+    mock_client_instance = MagicMock()
+    mock_response = MagicMock()
+    mock_embedding = MagicMock()
+    
+    mock_embedding.values = [0.5] * 768
+    mock_response.embeddings = [mock_embedding]
+    
+    mock_client_instance.aio.models.embed_content = AsyncMock(return_value=mock_response)
+    mock_genai_client.return_value = mock_client_instance
+    
+    service = HighDimEmbeddingService("dummy-vertex-model")
+    
+    vec = await service.get_embedding_async("Hello Async World")
+    
+    assert vec.shape == (768,)
+    assert vec.dtype == np.float32
+    assert np.isclose(vec[0], 0.5)
+    
+    mock_client_instance.aio.models.embed_content.assert_called_once()
+
+
+@patch("app.ai.embeddings.highdimservice.genai.Client")
+def test_high_dim_embedding_service_empty_response(mock_genai_client):
+    """Test that the service correctly raises ValueError on empty API responses."""
+    
+    mock_client_instance = MagicMock()
+    mock_response = MagicMock()
+    mock_response.embeddings = []
+    
+    mock_client_instance.models.embed_content.return_value = mock_response
+    mock_genai_client.return_value = mock_client_instance
+    
+    service = HighDimEmbeddingService("dummy-vertex-model")
+    
+    with pytest.raises(ValueError, match="API returned an empty embedding response."):
+        service.get_embedding("This will fail")
