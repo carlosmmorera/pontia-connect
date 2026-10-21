@@ -26,6 +26,7 @@ jobs:
           GOOGLE_CLOUD_LOCATION: "ci-dummy-region"
           GOOGLE_SEARCH_API_KEY: "ci-dummy-apikey"
           GOOGLE_SEARCH_ENGINE_ID: "ci-dummy-id"
+          PONTIA_CONNECT_SHEET_ID: "ci-dummy-sheet"
         run: |
           uv python install 3.12
           uv sync --frozen
