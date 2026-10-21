@@ -5,7 +5,12 @@ locals {
     "artifactregistry.googleapis.com",
     "aiplatform.googleapis.com",
     "iamcredentials.googleapis.com",
-    "cloudresourcemanager.googleapis.com"
+    "cloudresourcemanager.googleapis.com",
+    "sheets.googleapis.com",
+    "customsearch.googleapis.com",
+    "secretmanager.googleapis.com",
+    "apikeys.googleapis.com",
+    "iam.googleapis.com"
   ]
 }
 
@@ -23,6 +28,8 @@ resource "google_service_account" "github_actions_sa" {
   display_name = "GitHub Actions Service Account"
   project      = var.project_id
   description  = "Service account utilized by GitHub Actions to deploy resources."
+
+  depends_on = [google_project_service.required_apis]
 }
 
 locals {
@@ -42,7 +49,6 @@ resource "google_project_iam_member" "github_actions_roles" {
   member   = "serviceAccount:${google_service_account.github_actions_sa.email}"
 }
 
-# ------------------------------------------------------------------------------
 # Workload Identity Federation for GitHub 
 
 # 1. Create the Workload Identity Pool
@@ -51,6 +57,8 @@ resource "google_iam_workload_identity_pool" "github_pool" {
   display_name              = "GitHub Actions Pool"
   description               = "Identity pool for GitHub Actions OIDC integration"
   project                   = var.project_id
+
+  depends_on = [google_project_service.required_apis]
 }
 
 # 2. Create the OIDC Provider for GitHub

@@ -46,7 +46,7 @@ class HighDimEmbeddingService(EmbeddingService):
         settings = get_settings()
         self.model_name = model_name
         self.output_dimensionality = output_dimensionality
-        self.region = settings.GCP_REGION
+        self.region = settings.GOOGLE_CLOUD_LOCATION
         
         logger.info(
             f"Initializing Embedding client: {self.model_name} in {self.region}"
@@ -54,7 +54,7 @@ class HighDimEmbeddingService(EmbeddingService):
         
         self.client = genai.Client(
             vertexai=True,
-            project=settings.GCP_PROJECT_ID,
+            project=settings.GOOGLE_CLOUD_PROJECT,
             location=self.region
         )
 

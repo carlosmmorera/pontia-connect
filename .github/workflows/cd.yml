@@ -22,8 +22,10 @@ jobs:
 
       - name: Install dependencies & Run Tests
         env:
-          GCP_PROJECT_ID: "ci-dummy-project"
-          GCP_REGION: "ci-dummy-region"
+          GOOGLE_CLOUD_PROJECT: "ci-dummy-project"
+          GOOGLE_CLOUD_LOCATION: "ci-dummy-region"
+          GOOGLE_SEARCH_API_KEY: "ci-dummy-apikey"
+          GOOGLE_SEARCH_ENGINE_ID: "ci-dummy-id"
         run: |
           uv python install 3.12
           uv sync --frozen

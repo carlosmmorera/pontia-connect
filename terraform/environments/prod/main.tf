@@ -10,6 +10,8 @@ terraform {
 provider "google" {
   project = var.project_id
   region  = var.region
+  billing_project = var.project_id
+  user_project_override = true
 }
 
 module "genai_app" {
@@ -19,4 +21,6 @@ module "genai_app" {
   environment  = var.environment
   service_name = var.service_name
   github_repository = var.github_repository
+  pontia_connect_sheet_id = var.pontia_connect_sheet_id
+  google_search_engine_id = var.google_search_engine_id
 }

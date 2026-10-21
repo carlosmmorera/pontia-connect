@@ -44,8 +44,8 @@ cp .env.example .env
 Open the `.env` file and set your variables. Crucially, uncomment the `LOCAL_GCP_CREDS_PATH` **that matches your Operating System** so Docker can mount your ADC credentials:
 
 ```
-GCP_PROJECT_ID=your-gcp-project-id
-GCP_REGION=europe-west1
+GOOGLE_CLOUD_PROJECT=your-gcp-project-id
+GOOGLE_CLOUD_LOCATION=europe-west1
 
 # --- LOCAL DEVELOPMENT ONLY ---
 # Uncomment the line corresponding to your OS:
@@ -67,21 +67,35 @@ The application will be available at `http://localhost:8080`.
 
 ## Infrastructure & Deployment
 
+The underlying infrastructure is managed via Terraform and CI/CD pipelines, ensuring consistency and security.
+
 ### Terraform (IaC)
 
-The underlying infrastructure is defined in the terraform/ directory. It provisions:
+The `terraform/` directory defines the necessary resources, including:
 
 - A dedicated Service Account for Cloud Run (Least Privilege principle).
 - Artifact Registry for Docker images.
 - Cloud Run service definition.
 - IAM bindings for Vertex AI execution.
 - Workload Identity Federation (WIF) pools and providers for GitHub Actions.
+- Automatic creation and injection of Google Custom Search API Keys into Secret Manager.
 
-To provision or update the infrastructure:
+### Provisioning Infrastructure
+
+To provision or update the infrastructure, navigate to the desired environment directory (e.g., terraform/environments/prod) and execute the standard Terraform workflow:
+
+1. Initialize the working directory:
 ```bash
-cd terraform
 terraform init
+```
+
+2. Review the planned changes:
+```bash
 terraform plan
+```
+
+3. Apply the configuration:
+```bash
 terraform apply
 ```
 
@@ -89,4 +103,4 @@ terraform apply
 
 This project uses GitHub Actions (`.github/workflows/cd.yml`) to automatically test, build, and deploy to Cloud Run on every push to the `main` branch.
 
-For security, it uses Workload Identity Federation, meaning GitHub authenticates directly with Google Cloud using short-lived OIDC tokens. No static secrets or service account keys are stored in GitHub.
+**Security Highlight**: The pipeline uses Workload Identity Federation, meaning GitHub authenticates directly with Google Cloud using short-lived OIDC tokens. No static secrets or service account keys are stored in GitHub.

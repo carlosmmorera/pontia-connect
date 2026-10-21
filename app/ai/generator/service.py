@@ -34,13 +34,13 @@ class TextGenerationService:
         """
         settings = get_settings()
         self.model_name = model_name
-        self.region = settings.GCP_REGION
+        self.region = settings.GOOGLE_CLOUD_LOCATION
         
         logger.info(f"Initializing GenAI client for Vertex AI: {self.model_name} in {self.region}")
         
         self.client = genai.Client(
             vertexai=True,
-            project=settings.GCP_PROJECT_ID,
+            project=settings.GOOGLE_CLOUD_PROJECT,
             location=self.region
         )
 

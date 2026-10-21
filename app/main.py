@@ -7,7 +7,11 @@ import sys
 from loguru import logger
 from nicegui import app, ui
 
-from app.ui.pages import create_embeddings_page, create_generator_page
+from app.ui.pages import (
+    create_embeddings_page, 
+    create_generator_page,
+    create_agent_page
+)
 
 def filtrar_gensim(record):
     if record["name"] == "gensim.downloader":
@@ -53,6 +57,7 @@ def shutdown_event():
 app.add_static_files('/static', 'app/static')
 create_embeddings_page()
 create_generator_page()
+create_agent_page()
 
 # Run the application
 if __name__ in {"__main__", "__mp_main__"}:

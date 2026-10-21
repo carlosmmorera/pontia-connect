@@ -10,31 +10,37 @@ from google.adk.sessions import InMemorySessionService
 from google.genai import types
 
 from app.ai.agent.tools import get_attendee_info, search_recent_company_news
-from app.ai.agent import config
+from app.config import get_settings
 
 USER_ID = "user_1"
+APP_NAME = "pontia-connect-app"
 
 class NetworkingAgent:
     """
     The main networking agent orchestrated using the Agent Development Kit (ADK).
     """
-    def __init__(self):        
+    def __init__(self):
+        settings = get_settings()
         self.adk_agent = Agent(
             name="PontiaConnectNetworkingAgent",
-            model="gemini-3.5-flash",
-            instruction=config.AGENT_SYSTEM_PROMPT,
+            model=settings.AGENT_MODEL,
+            instruction=settings.AGENT_SYSTEM_PROMPT,
             tools=[get_attendee_info, search_recent_company_news]
         )
         self.sessions = InMemorySessionService()
-        self.runner = Runner(agent=self.adk_agent, session_service=self.sessions)
+        self.runner = Runner(
+            agent=self.adk_agent, 
+            app_name=APP_NAME,
+            session_service=self.sessions
+        )
 
-    async def generate_networking_strategy(self, attendee_name: str) -> str:
+    async def generate_networking_strategy(self, attendee_name: str):
         """
         Executes the reasoning loop. In a local testing context, it processes directly.
         """
         prompt = f"Help me create a networking strategy for the attendee named {attendee_name}."
         session = await self.sessions.create_session(
-            app_name = "pontia_app", 
+            app_name = APP_NAME, 
             user_id = USER_ID
         )
         message = types.Content(
@@ -43,12 +49,7 @@ class NetworkingAgent:
         )
 
         async for event in self.runner.run_async(user_id=USER_ID, session_id=session.id, new_message=message):
-            if (event.is_final_response() and event.content is not None
-                and event.content.parts is not None
-                and event.content.parts[0].text is not None):
-                return event.content.parts[0].text
-
-        raise RuntimeError("Not able to obtain agent response")
+            yield event
 
 
 # ADK Deployment Script Helper

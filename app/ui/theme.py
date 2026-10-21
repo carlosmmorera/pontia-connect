@@ -36,3 +36,6 @@ def apply_theme():
             ui.link('2. Generation & Probabilities', '/generator').classes(
                 'text-white text-lg font-semibold hover:text-secondary transition-colors no-underline'
             )
+            ui.link('3. The Agent', '/agent').classes(
+                'text-white hover:text-secondary font-bold no-underline'
+            )

@@ -11,7 +11,9 @@ from google.auth import default
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from app.ai.agent import config
+from app.config import get_settings
+
+settings = get_settings()
 
 @lru_cache(maxsize=128)
 def get_attendee_info(name: str) -> str:
@@ -39,8 +41,8 @@ def get_attendee_info(name: str) -> str:
         # Execute the API call
         sheet = service.spreadsheets()
         result = sheet.values().get(
-            spreadsheetId=config.SPREADSHEET_ID,
-            range=config.ATTENDEE_RANGE
+            spreadsheetId=settings.SPREADSHEET_ID,
+            range=settings.ATTENDEE_RANGE
         ).execute()
         values = result.get('values', [])
         
@@ -63,7 +65,7 @@ def get_attendee_info(name: str) -> str:
                     highest_score = score
                     best_match = row
                     
-        if highest_score >= config.MATCH_THRESHOLD and best_match:
+        if highest_score >= settings.MATCH_THRESHOLD and best_match:
             role = best_match[1]
             company = best_match[2]
             logger.info(f"Match found: {best_match[0]} with score {highest_score}")
@@ -86,21 +88,21 @@ def search_recent_company_news(company_name: str) -> str:
     """
     logger.info(f"Searching Google for: {company_name}")
     try:
-        if not config.GOOGLE_SEARCH_API_KEY or not config.GOOGLE_SEARCH_ENGINE_ID:
+        if not settings.GOOGLE_SEARCH_API_KEY or not settings.GOOGLE_SEARCH_ENGINE_ID:
             logger.warning("Google Search API credentials missing. Returning fallback.")
             return f"Cannot search news for {company_name} because search is not configured."
 
         service = build(
             "customsearch", 
             "v1", 
-            developerKey=config.GOOGLE_SEARCH_API_KEY
+            developerKey=settings.GOOGLE_SEARCH_API_KEY
         )
         query = f"{company_name} artificial intelligence news"
         
         # Execute Google Search query
         result = service.cse().list(
             q=query,
-            cx=config.GOOGLE_SEARCH_ENGINE_ID,
+            cx=settings.GOOGLE_SEARCH_ENGINE_ID,
             num=3,          # Limit to top 3 results
             dateRestrict="y1" # Restrict to past year (y1) or past month (m1)
         ).execute()

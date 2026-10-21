@@ -23,3 +23,14 @@ variable "github_repository" {
   description = "The GitHub repository in the format 'username/repo-name' allowed to deploy."
   # Example: default = "tu-usuario/pontia-connect"
 }
+
+variable "google_search_engine_id" {
+  description = "Engine ID for Google Custom Search"
+  type        = string
+  sensitive   = true
+}
+
+variable "pontia_connect_sheet_id" {
+  description = "ID of the Google Sheet containing attendee data"
+  type        = string
+}
