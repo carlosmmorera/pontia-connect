@@ -23,10 +23,13 @@ class NetworkingAgent:
     def __init__(self):
         settings = get_settings()
 
+        prompt_path = settings.PROMPTS_DIR / "agent_system_prompt.md"
+        system_instruction = prompt_path.read_text(encoding="utf-8")
+
         self.adk_agent = Agent(
             name="PontiaConnectNetworkingAgent",
             model=settings.AGENT_MODEL,
-            instruction=settings.AGENT_SYSTEM_PROMPT,
+            instruction=system_instruction,
             tools=[
                 get_attendee_info, 
                 GoogleSearchTool(bypass_multi_tools_limit=True)
@@ -44,7 +47,7 @@ class NetworkingAgent:
         """
         Executes the reasoning loop. In a local testing context, it processes directly.
         """
-        prompt = f"Help me create a networking strategy for the attendee named {attendee_name}."
+        prompt = f"Ayúdame a crear una estrategia de networking para el asistente llamado {attendee_name}."
         session = await self.sessions.create_session(
             app_name = APP_NAME, 
             user_id = USER_ID
