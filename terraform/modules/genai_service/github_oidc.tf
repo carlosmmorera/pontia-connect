@@ -7,9 +7,6 @@ locals {
     "iamcredentials.googleapis.com",
     "cloudresourcemanager.googleapis.com",
     "sheets.googleapis.com",
-    "customsearch.googleapis.com",
-    "secretmanager.googleapis.com",
-    "apikeys.googleapis.com",
     "iam.googleapis.com"
   ]
 }

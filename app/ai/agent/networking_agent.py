@@ -8,8 +8,9 @@ from google.adk import Agent
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
+from google.adk.tools.google_search_tool import GoogleSearchTool
 
-from app.ai.agent.tools import get_attendee_info, search_recent_company_news
+from app.ai.agent.tools import get_attendee_info
 from app.config import get_settings
 
 USER_ID = "user_1"
@@ -21,12 +22,17 @@ class NetworkingAgent:
     """
     def __init__(self):
         settings = get_settings()
+
         self.adk_agent = Agent(
             name="PontiaConnectNetworkingAgent",
             model=settings.AGENT_MODEL,
             instruction=settings.AGENT_SYSTEM_PROMPT,
-            tools=[get_attendee_info, search_recent_company_news]
+            tools=[
+                get_attendee_info, 
+                GoogleSearchTool(bypass_multi_tools_limit=True)
+            ]
         )
+
         self.sessions = InMemorySessionService()
         self.runner = Runner(
             agent=self.adk_agent, 

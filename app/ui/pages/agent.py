@@ -60,6 +60,13 @@ def create_agent_page():
                 run_btn.disable()
                 
                 name = attendee_input.value
+                if not name or not isinstance(name, str) or not name.strip():
+                    ui.notify("Please enter a valid attendee name.", type="warning")
+                    spinner.classes(add='hidden')
+                    run_btn.enable()
+                    return
+
+                name = name.strip()
                 log_container.push(f"> Initiating Agent Runner for target: {name}...\n")
                 
                 with chat_container:
@@ -75,10 +82,11 @@ def create_agent_page():
                         
                         # Show raw ADK event in the reality log
                         log_container.push(f"Event Received: {type(event).__name__}")
-                        
+
+                        tool_calls = getattr(event, 'tool_calls', [])
                         # Interpret event for the magic UI
-                        if hasattr(event, 'tool_calls') and event.tool_calls:
-                            for tc in event.tool_calls:
+                        if tool_calls:
+                            for tc in tool_calls:
                                 log_container.push(f"  [TOOL CALL] -> {tc.function.name}({tc.function.args})")
                                 with chat_container:
                                     ui.chat_message(
@@ -89,11 +97,14 @@ def create_agent_page():
                                     )
                         
                         elif event.is_final_response() and event.content:
-                            final_text = event.content.parts[0].text
-                            log_container.push(f"\n[FINAL LLM TEXT GENERATION]:\n{final_text}\n")
-                            
-                            with chat_container:
-                                ui.chat_message(final_text, name="Pontia Agent", avatar="https://cdn-icons-png.flaticon.com/512/4712/4712035.png")
+                            parts = getattr(event.content, 'parts', None)
+                            if parts and isinstance(parts, list) and len(parts) > 0:
+                                final_text = getattr(parts[0], 'text', "")
+                                if final_text:
+                                    log_container.push(f"\n[FINAL LLM TEXT GENERATION]:\n{final_text}\n")
+                                    
+                                    with chat_container:
+                                        ui.chat_message(final_text, name="Pontia Agent", avatar="https://cdn-icons-png.flaticon.com/512/4712/4712035.png")
 
                 except Exception as e:
                     logger.error(f"Agent error: {e}")

@@ -3,6 +3,7 @@ Pontia Connect Networking Agent Tools.
 Contains ADK-compatible tools for real-time external data retrieval.
 """
 
+from typing import Optional
 from loguru import logger
 from thefuzz import fuzz
 from functools import lru_cache
@@ -14,6 +15,28 @@ from googleapiclient.errors import HttpError
 from app.config import get_settings
 
 settings = get_settings()
+
+@lru_cache(maxsize=128)
+def _fetch_attendee_from_sheets(name: str) -> Optional[str]:
+    """Internal function to handle the cached Google Sheets API call."""
+    try:
+        credentials, _ = default(
+            scopes=['https://www.googleapis.com/auth/spreadsheets.readonly']
+        )
+        service = build('sheets', 'v4', credentials=credentials)
+        
+        sheet = service.spreadsheets()
+        result = sheet.values().get(
+            spreadsheetId=settings.SPREADSHEET_ID,
+            range=settings.ATTENDEE_RANGE
+        ).execute()
+        return result.get('values', [])
+    except HttpError as err:
+        logger.error(f"Google Sheets API error: {err}")
+        return None
+    except Exception as err:
+        logger.error(f"Unexpected error retrieving attendee: {err}")
+        return None
 
 @lru_cache(maxsize=128)
 def get_attendee_info(name: str) -> str:
@@ -31,92 +54,34 @@ def get_attendee_info(name: str) -> str:
         or a fallback message.
     """
     logger.info(f"Fetching attendee info for: {name}")
-    try:
-        # Load ADC credentials scoped for Google Sheets read-only access
-        credentials, _ = default(
-            scopes=['https://www.googleapis.com/auth/spreadsheets.readonly']
-        )
-        service = build('sheets', 'v4', credentials=credentials)
-        
-        # Execute the API call
-        sheet = service.spreadsheets()
-        result = sheet.values().get(
-            spreadsheetId=settings.SPREADSHEET_ID,
-            range=settings.ATTENDEE_RANGE
-        ).execute()
-        values = result.get('values', [])
-        
-        if not values:
-            return "No data found in the attendee database."
-            
-        target_name = name.lower().strip()
-        
-        best_match = None
-        highest_score = 0
-        
-        for row in values:
-            if len(row) >= 3:
-                candidate_name = row[0].lower().strip()
-                # Use token set ratio to handle middle names or swapped names 
-                # (e.g., "Perez Juan" vs "Juan Perez")
-                score = fuzz.token_set_ratio(target_name, candidate_name)
-                
-                if score > highest_score:
-                    highest_score = score
-                    best_match = row
-                    
-        if highest_score >= settings.MATCH_THRESHOLD and best_match:
-            role = best_match[1]
-            company = best_match[2]
-            logger.info(f"Match found: {best_match[0]} with score {highest_score}")
-            return f"Attendee Found: {best_match[0]} is currently {role} at {company}."
-                
-        return f"Attendee '{name}' not found in the Pontia Connect database (Best match score: {highest_score})."
-        
-    except HttpError as err:
-        logger.error(f"Google Sheets API error: {err}")
+    values = _fetch_attendee_from_sheets(name)
+
+    if values is None:
         return "Internal system error: Unable to connect to the database right now."
-    except Exception as err:
-        logger.error(f"Unexpected error retrieving attendee: {err}")
-        return "Internal system error: Database lookup failed."
-
-@lru_cache(maxsize=128)
-def search_recent_company_news(company_name: str) -> str:
-    """
-    Searches the internet using Google Custom Search API.
-    Cached to prevent duplicate quota usage.
-    """
-    logger.info(f"Searching Google for: {company_name}")
-    try:
-        if not settings.GOOGLE_SEARCH_API_KEY or not settings.GOOGLE_SEARCH_ENGINE_ID:
-            logger.warning("Google Search API credentials missing. Returning fallback.")
-            return f"Cannot search news for {company_name} because search is not configured."
-
-        service = build(
-            "customsearch", 
-            "v1", 
-            developerKey=settings.GOOGLE_SEARCH_API_KEY
-        )
-        query = f"{company_name} artificial intelligence news"
+    
+    if not values:
+        return "No data found in the attendee database."
         
-        # Execute Google Search query
-        result = service.cse().list(
-            q=query,
-            cx=settings.GOOGLE_SEARCH_ENGINE_ID,
-            num=3,          # Limit to top 3 results
-            dateRestrict="y1" # Restrict to past year (y1) or past month (m1)
-        ).execute()
-        
-        search_items = result.get("items", [])
-        if not search_items:
-            return f"No recent AI news found for {company_name}."
+    target_name = name.lower().strip()
+    
+    best_match = None
+    highest_score = 0
+    
+    for row in values:
+        if len(row) >= 3:
+            candidate_name = row[0].lower().strip()
+            # Use token set ratio to handle middle names or swapped names 
+            # (e.g., "Perez Juan" vs "Juan Perez")
+            score = fuzz.token_set_ratio(target_name, candidate_name)
             
-        headlines = [
-            f"- {item.get('title')}: {item.get('snippet')}" 
-            for item in search_items
-        ]
-        return "Recent News from Google Search:\n" + "\n".join(headlines)
-        
-    except HttpError as err:
-        logger.error(f"Google Search API failed: {err}")
-        return f"Could not retrieve news for {company_name} due to an API error."
+            if score > highest_score:
+                highest_score = score
+                best_match = row
+                
+    if highest_score >= settings.MATCH_THRESHOLD and best_match:
+        role = best_match[1]
+        company = best_match[2]
+        logger.info(f"Match found: {best_match[0]} with score {highest_score}")
+        return f"Attendee Found: {best_match[0]} is currently {role} at {company}."
+            
+    return f"Attendee '{name}' not found in the Pontia Connect database (Best match score: {highest_score})."

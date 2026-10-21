@@ -15,8 +15,6 @@ class Settings(BaseSettings):
 
     # External Integrations
     SPREADSHEET_ID: str = Field(alias="PONTIA_CONNECT_SHEET_ID")
-    GOOGLE_SEARCH_API_KEY: str
-    GOOGLE_SEARCH_ENGINE_ID: str
 
     # Agent Constants
     AGENT_MODEL: str = "gemini-2.5-pro"
