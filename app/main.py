@@ -8,9 +8,15 @@ from loguru import logger
 from nicegui import app, ui
 
 from app.ui.pages import (
-    create_embeddings_page, 
+    create_tokenization_page,
+    create_arithmetic_page,
     create_generator_page,
     create_agent_page
+)
+from app.ai.dependencies import (
+    get_low_dim_service, 
+    get_high_dim_service,
+    get_generator_service
 )
 
 def filtrar_gensim(record):
@@ -49,13 +55,19 @@ def startup_event():
     setup_logging()
     logger.info("Starting Pontia Connect Demo App...")
 
+    logger.info("Pre-warming AI Services...")
+    get_low_dim_service()
+    get_high_dim_service()
+    get_generator_service()
+
 @app.on_shutdown
 def shutdown_event():
     logger.info("Shutting down Pontia Connect Demo App...")
 
 # Initialize the UI
 app.add_static_files('/static', 'app/static')
-create_embeddings_page()
+create_tokenization_page()
+create_arithmetic_page()
 create_generator_page()
 create_agent_page()
 

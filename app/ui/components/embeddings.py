@@ -3,14 +3,22 @@ Reusable UI components for the Generative AI presentation.
 """
 
 import numpy as np
-from typing import Optional
+from typing import Optional, Callable, Union, Awaitable
 from nicegui import ui
 import tiktoken
 
-def token_visualizer(text: str) -> None:
+def token_visualizer(
+        text: str,
+        on_token_click: Optional[Callable[[str], Union[None, Awaitable[None]]]] = None
+) -> None:
     """
     Renders a text string into visually distinct tokens using the 
-    cl100k_base encoder (GPT-4 standard).
+    cl100k_base encoder. 
+    
+    Args:
+        text (str): The input text to tokenize.
+        on_token_click (Callable, optional): Callback executed when a token is clicked.
+            Passes the decoded token string as an argument.
     """
     encoder = tiktoken.get_encoding("cl100k_base")
     tokens = encoder.encode(text)
@@ -18,12 +26,24 @@ def token_visualizer(text: str) -> None:
     with ui.row().classes('w-full items-center gap-1 flex-wrap bg-dark p-4 '
                           + 'rounded shadow'):
         for token_id in tokens:
-            token_str = encoder.decode([token_id])
-            # Display both the text string and the integer ID
-            with ui.column().classes('token-box items-center'):
-                ui.label(repr(token_str)).classes('text-accent font-bold '
-                                                  + 'text-lg')
-                ui.label(str(token_id)).classes('text-xs text-gray-400')
+            token_str: str = encoder.decode([token_id])
+
+            box_classes = 'token-box items-center p-2 rounded transition-colors '
+            if on_token_click:
+                box_classes += 'cursor-pointer hover:bg-primary hover:text-white'
+            else:
+                box_classes += 'bg-gray-800'
+
+            with ui.column().classes(box_classes) as box:
+                ui.label(repr(token_str)).classes(
+                    'text-accent font-bold text-lg pointer-events-none'
+                )
+                ui.label(str(token_id)).classes(
+                    'text-xs text-gray-400 pointer-events-none'
+                )
+                
+                if on_token_click:
+                    box.on('click', lambda e, t=token_str: on_token_click(t))
 
 def vector_display(
         vector: np.ndarray, 

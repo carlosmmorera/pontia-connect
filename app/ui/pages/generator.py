@@ -9,18 +9,16 @@ __author__ = "Carlos Moreno Morera"
 
 from nicegui import ui
 from loguru import logger
-from app.ai.generator import TextGenerationService
+from app.ai.dependencies import get_generator_service
 
 from app.ui.theme import apply_theme
 
 def create_generator_page():
-    """Builds the next-token generation UI route."""
-    
-    generation_service = TextGenerationService()
-    
+    """Builds the next-token generation UI route."""    
     @ui.page('/generator')
     def generator_ui():
         apply_theme()
+        generation_service = get_generator_service()
         
         with ui.column().classes('w-full max-w-4xl mx-auto p-6'):
             ui.label(
@@ -76,6 +74,9 @@ def create_generator_page():
             async def on_generate(e):
                 if not prompt_input.value or not prompt_input.value.strip():
                     ui.notify("Please enter a prompt.", type="warning")
+                    return
+                if generation_service is None:
+                    ui.notify("Error loading generation model.", type="negative")
                     return
                     
                 gen_btn.disable()

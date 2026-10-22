@@ -30,12 +30,15 @@ def apply_theme():
         ).classes('text-2xl font-bold text-primary')
         
         with ui.row().classes('gap-6'):
-            ui.link('1. Tokens & Embeddings', '/').classes(
+            ui.link('1. Tokens', '/').classes(
                 'text-white text-lg font-semibold hover:text-secondary transition-colors no-underline'
             )
-            ui.link('2. Generation & Probabilities', '/generator').classes(
+            ui.link('2. Arithmetic', '/arithmetic').classes(
                 'text-white text-lg font-semibold hover:text-secondary transition-colors no-underline'
             )
-            ui.link('3. The Agent', '/agent').classes(
+            ui.link('3. Generation', '/generator').classes(
+                'text-white text-lg font-semibold hover:text-secondary transition-colors no-underline'
+            )
+            ui.link('4. The Agent', '/agent').classes(
                 'text-white text-lg font-semibold hover:text-secondary transition-colors no-underline'
             )
