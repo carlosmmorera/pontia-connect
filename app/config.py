@@ -18,7 +18,8 @@ class Settings(BaseSettings):
     SPREADSHEET_ID: str = Field(alias="PONTIA_CONNECT_SHEET_ID")
 
     # Agent Constants
-    AGENT_MODEL: str = "gemini-2.5-pro"
+    AGENT_MODEL: str = "gemini-3.5-flash"
+    GENERATOR_MODEL: str = "gemini-3.5-flash"
     ATTENDEE_RANGE: str = "Attendees!A2:C"
     MATCH_THRESHOLD: int = 75
 

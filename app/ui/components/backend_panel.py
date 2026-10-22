@@ -28,7 +28,6 @@ def create_log_entry(container, title: str, content: str, entry_type: str = "inf
             
             # Format JSON content beautifully if possible, otherwise show raw text
             try:
-                # Try to parse as JSON to pretty-print
                 if isinstance(content, dict):
                     formatted_content = json.dumps(content, indent=2)
                 else:
@@ -37,4 +36,8 @@ def create_log_entry(container, title: str, content: str, entry_type: str = "inf
             except (ValueError, TypeError):
                 formatted_content = str(content)
                 
-            ui.code(formatted_content).classes('text-xs bg-transparent p-0 m-0 whitespace-pre-wrap break-all')
+            if len(formatted_content) > 300:
+                with ui.expansion('Read more...', icon='unfold_more').classes('w-full text-xs bg-black/30 rounded'):
+                    ui.code(formatted_content).classes('text-xs bg-transparent p-2 m-0 whitespace-pre-wrap break-words w-full')
+            else:
+                ui.code(formatted_content).classes('text-xs bg-transparent p-0 m-0 whitespace-pre-wrap break-words w-full')

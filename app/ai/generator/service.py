@@ -25,7 +25,7 @@ class TextGenerationService:
     using Vertex AI via the unified Google GenAI SDK.
     """
     
-    def __init__(self, model_name: str = "gemini-2.5-flash-lite"):
+    def __init__(self):
         """
         Initializes the GenAI Client for Vertex AI.
         
@@ -33,7 +33,7 @@ class TextGenerationService:
             model_name (str): Gemini model version to use. Defaults to gemini-1.5-flash.
         """
         settings = get_settings()
-        self.model_name = model_name
+        self.model_name = settings.GENERATOR_MODEL
         self.region = settings.GOOGLE_CLOUD_LOCATION
         
         logger.info(f"Initializing GenAI client for Vertex AI: {self.model_name} in {self.region}")
