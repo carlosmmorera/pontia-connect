@@ -49,7 +49,7 @@ def create_agent_page():
                 
                 # LEFT PANEL
                 left_panel = ui.column().classes(
-                    'flex-grow w-full transition-all duration-500 bg-gray-800 p-6 rounded-lg shadow-lg'
+                    'flex-grow w-full transition-all duration-500 bg-gray-800 p-6 rounded-lg shadow-lg min-w-0'
                 )
                 
                 with left_panel:
@@ -62,7 +62,7 @@ def create_agent_page():
                 
                 # RIGHT PANEL
                 right_panel = ui.column().classes(
-                    'w-0 opacity-0 px-0 py-0 border-0 overflow-hidden transition-all duration-500 bg-black rounded-lg shadow-lg border-gray-700'
+                    'w-0 opacity-0 px-0 py-0 border-0 transition-all duration-500 bg-black rounded-lg shadow-lg border-gray-700 overflow-hidden min-w-0'
                 )
                 
                 with right_panel:
@@ -73,12 +73,12 @@ def create_agent_page():
                 ui_state["revealed"] = not ui_state["revealed"]
                 
                 if ui_state["revealed"]:
-                    right_panel.classes(remove='w-0 opacity-0 px-0 py-0 border-0 overflow-hidden').classes(add='w-1/2 p-6 border')
+                    right_panel.classes(remove='w-0 opacity-0 px-0 py-0 border-0').classes(add='w-1/2 p-6 border')
                     left_panel.classes(remove='w-full').classes(add='w-1/2')
                     reveal_btn.set_text("Hide Reality")
                     reveal_btn.props('icon=visibility_off')
                 else:
-                    right_panel.classes(remove='w-1/2 p-6 border').classes(add='w-0 opacity-0 px-0 py-0 border-0 overflow-hidden')
+                    right_panel.classes(remove='w-1/2 p-6 border').classes(add='w-0 opacity-0 px-0 py-0 border-0')
                     left_panel.classes(remove='w-1/2').classes(add='w-full')
                     reveal_btn.set_text("Reveal the Reality")
                     reveal_btn.props('icon=visibility')

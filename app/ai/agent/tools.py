@@ -83,5 +83,10 @@ def get_attendee_info(name: str) -> str:
         company = best_match[2]
         logger.info(f"Match found: {best_match[0]} with score {highest_score}")
         return f"Attendee Found: {best_match[0]} is currently {role} at {company}."
-            
-    return f"Attendee '{name}' not found in the Pontia Connect database (Best match score: {highest_score})."
+
+    if best_match:
+        return (f"There is no attendee with name '{name}' in the Pontia Connect"
+            + " database. However the best match is with the attendee with "
+            + f"name {best_match[0]} (Best match score: {highest_score}).")
+
+    return "No attendee found in the Pontia Connect database"

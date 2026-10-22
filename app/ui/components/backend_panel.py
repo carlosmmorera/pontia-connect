@@ -1,5 +1,6 @@
 from nicegui import ui
 import json
+import html
 from typing import Optional
 
 def format_content(content):
@@ -15,11 +16,15 @@ def format_content(content):
 
 def render_code_block(content_str: str):
     """Helper to render a code block with 'Read more' if it's too long."""
+
+    wrap_style = 'white-space: pre-wrap !important; word-break: break-word !important; overflow-wrap: break-word !important; overflow-x: hidden !important; font-family: monospace; margin: 0;'
+    safe_html = html.escape(content_str)
+
     if len(content_str) > 300:
-        with ui.expansion('Read more...', icon='unfold_more').classes('w-full text-xs bg-black/30 rounded'):
-            ui.code(content_str).classes('text-xs bg-transparent p-2 m-0 whitespace-pre-wrap break-words w-full')
+        with ui.expansion('Read more...', icon='unfold_more').classes('w-full max-w-full overflow-hidden text-xs bg-black/30 rounded'):
+            ui.html(f'<pre style="{wrap_style} padding: 0.5rem;">{safe_html}</pre>').classes('w-full max-w-full bg-transparent text-xs')
     else:
-        ui.code(content_str).classes('text-xs bg-transparent p-0 m-0 whitespace-pre-wrap break-words w-full')
+        ui.html(f'<pre style="{wrap_style} padding: 0;">{safe_html}</pre>').classes('w-full max-w-full bg-transparent text-xs')
 
 def create_log_entry(container, title: str, content: str, entry_type: str = "info", llm_input: Optional[str] = None):
     """
@@ -43,7 +48,7 @@ def create_log_entry(container, title: str, content: str, entry_type: str = "inf
     styles = color_map.get(entry_type, color_map["info"])
     
     with container:
-        with ui.card().classes(f'w-full border-l-4 mb-4 p-4 shadow-md {styles}'):
+        with ui.card().classes(f'w-full max-w-full overflow-hidden border-l-4 mb-4 p-4 shadow-md {styles}'):
             ui.label(title).classes('font-bold text-sm uppercase tracking-wider mb-2 opacity-90')
             
             if llm_input:
