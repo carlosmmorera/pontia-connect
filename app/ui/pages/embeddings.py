@@ -56,14 +56,20 @@ def create_tokenization_page():
                     ui.label(f"Fetching embedding for {repr(token)}...").classes('text-sm text-gray-400')
 
                 try:
-                    if model_selector.value == 'low':
-                        vec = embed_service_low.get_embedding(token)
-                    elif embed_service_high is not None:
+                    if model_selector.value == 'high' and embed_service_high is not None:
                         vec = await embed_service_high.get_embedding_async(token)
+                        limit = 120
+                    else:
+                        vec = embed_service_low.get_embedding(token)
+                        limit = 50
                     
                     token_vector_container.clear()
                     with token_vector_container:
-                        vector_display(vec, title=f"Vector for {repr(token)}")
+                        vector_display(
+                            vec, 
+                            title=f"Vector for {repr(token)}", 
+                            display_limit=limit
+                        )
                 
                 except Exception as e:
                     token_vector_container.clear()
@@ -108,14 +114,15 @@ def create_arithmetic_page():
             results_container = ui.column().classes('w-full mt-4')
             closest_comparison_container = ui.column().classes('w-full mt-2')
 
-            def handle_closest_word_click(word: str, reference_vector: np.ndarray):
+            def handle_closest_word_click(word: str, reference_vector: np.ndarray, reference_label: str):
                 closest_comparison_container.clear()
                 word_vec = embed_service_low.get_embedding(word)
                 with closest_comparison_container:
                     vector_display(
                         vector=word_vec, 
                         title=f"Vector for {repr(word)}", 
-                        compare_with=reference_vector
+                        compare_with=reference_vector,
+                        compare_label=reference_label
                     )
             
             def calculate_vectors(e):
@@ -144,9 +151,18 @@ def create_arithmetic_page():
                             ui.button(
                                 f"{word} ({score:.2f})", 
                                 color="accent",
-                                on_click=lambda e, w=word: handle_closest_word_click(w, result_vector)
+                                on_click=lambda e, w=word: handle_closest_word_click(
+                                    w, 
+                                    result_vector, 
+                                    reference_label="Resulting Vector"
+                                )
                             ).classes('rounded-full px-4 text-sm')
                     
-                    vector_display(result_vector, title="Resulting Vector", compare_with=v1)
+                    vector_display(
+                        result_vector, 
+                        title="Resulting Vector", 
+                        compare_with=v1,
+                        compare_label=f"First Word ({repr(w1)})"
+                    )
                     
             calc_btn.on_click(calculate_vectors)
