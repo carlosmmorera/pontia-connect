@@ -106,61 +106,62 @@ def create_agent_page():
                 try:
                     # Iterate through the asynchronous generator
                     async for event in agent.generate_networking_strategy(name):
-                        tool_calls = getattr(event, 'tool_calls', [])
-                        # Interpret event for the magic UI
-                        if tool_calls:
-                            for tc in tool_calls:
-                                func_name = getattr(tc.function, 'name', 'UnknownTool')
-                                func_args = str(getattr(tc.function, 'args', {}))
-                                create_log_entry(
-                                    backend_scroll_area, 
-                                    f"TOOL CALL REQUESTED: {func_name}", 
-                                    func_args, 
-                                    "tool_call"
-                                )
-
-                                with chat_container:
-                                    ui.chat_message(
-                                        f"<i>Using tool: {func_name}...</i>", 
-                                        name="System", 
-                                        text_html=True,
-                                        avatar="https://cdn-icons-png.flaticon.com/512/2885/2885412.png"
-                                    )
-
-                        tool_response = getattr(event, 'tool_response', None) or getattr(event, 'function_response', None)
-                        if tool_response:
-                            create_log_entry(
-                                backend_scroll_area, 
-                                "TOOL EXECUTION RESULT", 
-                                str(tool_response), 
-                                "tool_result"
-                            )
-                        
-                        elif event.is_final_response() and event.content:
-                            parts = getattr(event.content, 'parts', None)
-                            if parts and isinstance(parts, list) and len(parts) > 0:
-                                final_text = getattr(parts[0], 'text', "")
-                                if final_text:
+                        if hasattr(event, 'content') and event.content and hasattr(event.content, 'parts'):
+                            for part in getattr(event.content, "parts", []):
+                                
+                                # 1. Check for Text (Reasoning or Final Generation)
+                                if hasattr(part, 'text') and part.text:
+                                    text_content = part.text.strip()
+                                    
+                                    card_type = "final_text" if event.is_final_response() else "info"
+                                    title = "FINAL LLM TEXT GENERATION" if card_type == "final_text" else "LLM REASONING"
+                                    
                                     create_log_entry(
                                         backend_scroll_area, 
-                                        "FINAL LLM TEXT GENERATION", 
-                                        final_text, 
-                                        "final_text"
+                                        title, 
+                                        text_content, 
+                                        card_type
                                     )
                                     
+                                    # Push all generated text to the front-end chat magic UI
                                     with chat_container:
                                         ui.chat_message(
-                                            final_text, 
+                                            text_content, 
                                             name="Pontia Agent", 
                                             avatar="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"
                                         )
-                        elif hasattr(event, 'text'):
-                            create_log_entry(
-                                backend_scroll_area, 
-                                "LLM REASONING CHUNK", 
-                                getattr(event, 'text'),
-                                "info"
-                            )
+
+                                # 2. Check for Tool Call Requests
+                                if hasattr(part, 'function_call') and part.function_call:
+                                    func_name = getattr(part.function_call, 'name', 'UnknownTool')
+                                    func_args = str(getattr(part.function_call, 'args', {}))
+
+                                    create_log_entry(
+                                        backend_scroll_area, 
+                                        f"TOOL CALL REQUESTED: {func_name}", 
+                                        func_args, 
+                                        "tool_call"
+                                    )
+
+                                    with chat_container:
+                                        ui.chat_message(
+                                            f"<i>Using tool: {func_name}...</i>", 
+                                            name="System", 
+                                            text_html=True,
+                                            avatar="https://cdn-icons-png.flaticon.com/512/2885/2885412.png"
+                                        )
+
+                                # 3. Check for Tool Execution Results
+                                if hasattr(part, 'function_response') and part.function_response:
+                                    func_name = getattr(part.function_response, 'name', 'UnknownTool')
+                                    func_data = str(getattr(part.function_response, 'response', {}))
+                                    
+                                    create_log_entry(
+                                        backend_scroll_area, 
+                                        f"TOOL EXECUTION RESULT: {func_name}", 
+                                        func_data, 
+                                        "tool_result"
+                                    )
                 except Exception as e:
                     logger.error(f"Agent error: {e}")
                     create_log_entry(backend_scroll_area, "ERROR", str(e), "info")
