@@ -19,9 +19,12 @@ class Settings(BaseSettings):
 
     # Agent Constants
     AGENT_MODEL: str = "gemini-3.5-flash"
-    GENERATOR_MODEL: str = "gemini-3.5-flash"
     ATTENDEE_RANGE: str = "Attendees!A2:C"
     MATCH_THRESHOLD: int = 75
+
+    # Generator Constants
+    GENERATOR_MODEL: str = "gemini-2.5-flash-lite"
+    GENERATOR_REGION: str = "europe-west1"
 
     PROMPTS_DIR: Path = Path(__file__).parent / "ai" / "prompts"
 

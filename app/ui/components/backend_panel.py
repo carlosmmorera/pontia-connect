@@ -1,7 +1,27 @@
 from nicegui import ui
 import json
+from typing import Optional
 
-def create_log_entry(container, title: str, content: str, entry_type: str = "info"):
+def format_content(content):
+    """Helper to safely format dicts/JSON strings or return plain text."""
+    try:
+        if isinstance(content, dict):
+            return json.dumps(content, indent=2)
+        else:
+            parsed = json.loads(content)
+            return json.dumps(parsed, indent=2)
+    except (ValueError, TypeError):
+        return str(content)
+
+def render_code_block(content_str: str):
+    """Helper to render a code block with 'Read more' if it's too long."""
+    if len(content_str) > 300:
+        with ui.expansion('Read more...', icon='unfold_more').classes('w-full text-xs bg-black/30 rounded'):
+            ui.code(content_str).classes('text-xs bg-transparent p-2 m-0 whitespace-pre-wrap break-words w-full')
+    else:
+        ui.code(content_str).classes('text-xs bg-transparent p-0 m-0 whitespace-pre-wrap break-words w-full')
+
+def create_log_entry(container, title: str, content: str, entry_type: str = "info", llm_input: Optional[str] = None):
     """
     Creates a styled, visual card for a backend log entry.
     
@@ -23,21 +43,12 @@ def create_log_entry(container, title: str, content: str, entry_type: str = "inf
     styles = color_map.get(entry_type, color_map["info"])
     
     with container:
-        with ui.card().classes(f'w-full border-l-4 mb-2 p-3 shadow-md {styles}'):
-            ui.label(title).classes('font-bold text-sm uppercase tracking-wider mb-1 opacity-80')
+        with ui.card().classes(f'w-full border-l-4 mb-4 p-4 shadow-md {styles}'):
+            ui.label(title).classes('font-bold text-sm uppercase tracking-wider mb-2 opacity-90')
             
-            # Format JSON content beautifully if possible, otherwise show raw text
-            try:
-                if isinstance(content, dict):
-                    formatted_content = json.dumps(content, indent=2)
-                else:
-                    parsed = json.loads(content)
-                    formatted_content = json.dumps(parsed, indent=2)
-            except (ValueError, TypeError):
-                formatted_content = str(content)
-                
-            if len(formatted_content) > 300:
-                with ui.expansion('Read more...', icon='unfold_more').classes('w-full text-xs bg-black/30 rounded'):
-                    ui.code(formatted_content).classes('text-xs bg-transparent p-2 m-0 whitespace-pre-wrap break-words w-full')
-            else:
-                ui.code(formatted_content).classes('text-xs bg-transparent p-0 m-0 whitespace-pre-wrap break-words w-full')
+            if llm_input:
+                ui.label("▼ INPUT TO LLM").classes('text-[10px] font-bold text-gray-400 mb-1 tracking-wide')
+                render_code_block(format_content(llm_input))
+                ui.label("▼ OUTPUT FROM LLM").classes('text-[10px] font-bold text-gray-400 mt-4 mb-1 tracking-wide')
+            
+            render_code_block(format_content(content))

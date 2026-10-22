@@ -7,7 +7,6 @@ from nicegui import ui
 from loguru import logger
 from app.ai.agent import NetworkingAgent
 from app.ui.theme import apply_theme
-
 from app.ui.components import create_log_entry
 
 def create_agent_page():
@@ -18,6 +17,7 @@ def create_agent_page():
         apply_theme()
 
         ui_state = {"revealed": False}
+        intermediate_elements = []
         
         with ui.column().classes('w-full max-w-[90rem] mx-auto p-6'):
             with ui.row().classes('w-full justify-between items-center mb-6'):
@@ -48,7 +48,9 @@ def create_agent_page():
             with panels_container:
                 
                 # LEFT PANEL
-                left_panel = ui.column().classes('flex-grow w-1/2 transition-all duration-500 bg-gray-800 p-6 rounded-lg shadow-lg')
+                left_panel = ui.column().classes(
+                    'flex-grow w-full transition-all duration-500 bg-gray-800 p-6 rounded-lg shadow-lg'
+                )
                 
                 with left_panel:
                     ui.label("Front-End (The Magic)").classes('text-xl font-bold text-accent mb-4')
@@ -59,7 +61,9 @@ def create_agent_page():
                         status_text = ui.label("Initializing agent...").classes('text-sm text-gray-400 italic')
                 
                 # RIGHT PANEL
-                right_panel = ui.column().classes('w-1/2 hidden transition-all duration-500 bg-black p-6 rounded-lg shadow-lg border border-gray-700')
+                right_panel = ui.column().classes(
+                    'w-0 opacity-0 px-0 py-0 border-0 overflow-hidden transition-all duration-500 bg-black rounded-lg shadow-lg border-gray-700'
+                )
                 
                 with right_panel:
                     ui.label("Back-End (The Reality)").classes('text-xl font-bold text-secondary mb-4')
@@ -67,24 +71,27 @@ def create_agent_page():
 
             def toggle_backend():
                 ui_state["revealed"] = not ui_state["revealed"]
+                
                 if ui_state["revealed"]:
-                    right_panel.classes(remove='hidden')
-                    left_panel.classes(remove='w-full')
-                    left_panel.classes(add='w-1/2')
+                    right_panel.classes(remove='w-0 opacity-0 px-0 py-0 border-0 overflow-hidden').classes(add='w-1/2 p-6 border')
+                    left_panel.classes(remove='w-full').classes(add='w-1/2')
                     reveal_btn.set_text("Hide Reality")
                     reveal_btn.props('icon=visibility_off')
                 else:
-                    right_panel.classes(add='hidden')
-                    left_panel.classes(remove='w-1/2')
-                    left_panel.classes(add='w-full')
+                    right_panel.classes(remove='w-1/2 p-6 border').classes(add='w-0 opacity-0 px-0 py-0 border-0 overflow-hidden')
+                    left_panel.classes(remove='w-1/2').classes(add='w-full')
                     reveal_btn.set_text("Reveal the Reality")
                     reveal_btn.props('icon=visibility')
+
+                for el in intermediate_elements:
+                    el.set_visibility(ui_state["revealed"])
                     
             reveal_btn.on_click(toggle_backend)
             
             async def run_agent():
                 chat_container.clear()
                 backend_scroll_area.clear()
+                intermediate_elements.clear()
 
                 loading_indicator.classes(remove='hidden')
                 status_text.set_text("Connecting to LLM...")
@@ -99,13 +106,9 @@ def create_agent_page():
 
                 name = name.strip()
                 prompt_text = f"Ayúdame a crear una estrategia de networking para el asistente llamado {name}."
-                create_log_entry(
-                    backend_scroll_area, 
-                    "1. INITIAL SYSTEM PROMPT SENT TO LLM", 
-                    prompt_text, 
-                    "prompt"
-                )
                 
+                last_llm_input = f"[System Prompt Loaded]\n\nUser Request: {prompt_text}"
+                                
                 with chat_container:
                     ui.chat_message(
                         f"¿Me puedes ayudar a entablar conversación con {name}?", 
@@ -114,8 +117,11 @@ def create_agent_page():
                     )
                 
                 try:
-                    # Iterate through the asynchronous generator
                     async for event in agent.generate_networking_strategy(name):
+                        
+                        current_input_to_print = last_llm_input
+                        last_llm_input = None 
+                        
                         if hasattr(event, 'content') and event.content and hasattr(event.content, 'parts'):
                             for part in getattr(event.content, "parts", []):
                                 
@@ -131,10 +137,12 @@ def create_agent_page():
                                         backend_scroll_area, 
                                         title, 
                                         text_content, 
-                                        card_type
+                                        card_type,
+                                        llm_input=current_input_to_print
                                     )
+                                    current_input_to_print = None
 
-                                    if event.is_final_response():
+                                    if is_final:
                                         with chat_container:
                                             ui.chat_message(
                                                 text_content, 
@@ -143,13 +151,13 @@ def create_agent_page():
                                             )
                                     else:
                                         status_text.set_text("Agent is reasoning about the strategy...")
-                                        if ui_state["revealed"]:
-                                            with chat_container:
-                                                ui.chat_message(
-                                                    text_content, 
-                                                    name="Pontia Agent", 
-                                                    avatar="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"
-                                                )
+                                        with chat_container:
+                                            msg = ui.chat_message(
+                                                text_content, name="Pontia Agent", 
+                                                avatar="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"
+                                            )
+                                            msg.set_visibility(ui_state["revealed"])
+                                            intermediate_elements.append(msg)
 
                                 # 2. Check for Tool Call Requests
                                 if hasattr(part, 'function_call') and part.function_call:
@@ -160,19 +168,20 @@ def create_agent_page():
                                         backend_scroll_area, 
                                         f"TOOL CALL REQUESTED: {func_name}", 
                                         func_args, 
-                                        "tool_call"
+                                        "tool_call",
+                                        llm_input=current_input_to_print
                                     )
+                                    current_input_to_print = None 
 
                                     status_text.set_text(f"Executing internal tool: {func_name}...")
                                     
-                                    if ui_state["revealed"]:
-                                        with chat_container:
-                                            ui.chat_message(
-                                                f"<i>Using tool: {func_name}...</i>", 
-                                                name="System", 
-                                                text_html=True,
-                                                avatar="https://cdn-icons-png.flaticon.com/512/2885/2885412.png"
-                                            )
+                                    with chat_container:
+                                        msg = ui.chat_message(
+                                            f"<i>Using tool: {func_name}...</i>", name="System", 
+                                            text_html=True, avatar="https://cdn-icons-png.flaticon.com/512/2885/2885412.png"
+                                        )
+                                        msg.set_visibility(ui_state["revealed"])
+                                        intermediate_elements.append(msg)
 
                                 # 3. Check for Tool Execution Results
                                 if hasattr(part, 'function_response') and part.function_response:
@@ -185,7 +194,10 @@ def create_agent_page():
                                         func_data, 
                                         "tool_result"
                                     )
+                                    
+                                    last_llm_input = f"Tool Execution Result ({func_name}):\n{func_data}"
                                     status_text.set_text(f"Processing results from {func_name}...")
+                                    
                 except Exception as e:
                     logger.error(f"Agent error: {e}")
                     create_log_entry(backend_scroll_area, "ERROR", str(e), "info")

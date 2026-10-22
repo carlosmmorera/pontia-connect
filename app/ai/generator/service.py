@@ -34,7 +34,10 @@ class TextGenerationService:
         """
         settings = get_settings()
         self.model_name = settings.GENERATOR_MODEL
-        self.region = settings.GOOGLE_CLOUD_LOCATION
+        self.region = settings.GENERATOR_REGION
+
+        prompt_path = settings.PROMPTS_DIR / "generator_system_prompt.md"
+        self.system_instruction = prompt_path.read_text(encoding="utf-8")
         
         logger.info(f"Initializing GenAI client for Vertex AI: {self.model_name} in {self.region}")
         
@@ -69,6 +72,7 @@ class TextGenerationService:
             request fails (e.g., safety block).
         """
         config = types.GenerateContentConfig(
+            system_instruction=self.system_instruction,
             max_output_tokens=1,
             temperature=temperature,
             top_k=top_k,
