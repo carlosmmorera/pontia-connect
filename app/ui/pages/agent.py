@@ -130,34 +130,71 @@ def create_agent_page():
                                     text_content = part.text.strip()
 
                                     is_final = event.is_final_response()
-                                    card_type = "final_text" if is_final else "info"
-                                    title = "FINAL LLM TEXT GENERATION" if is_final else "LLM REASONING"
-                                    
-                                    create_log_entry(
-                                        backend_scroll_area, 
-                                        title, 
-                                        text_content, 
-                                        card_type,
-                                        llm_input=current_input_to_print
-                                    )
-                                    current_input_to_print = None
 
-                                    if is_final:
-                                        with chat_container:
-                                            ui.chat_message(
-                                                text_content, 
-                                                name="Pontia Agent", 
-                                                avatar="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"
+                                    if is_final and "ROMPEHIELOS:" in text_content:
+                                        parts_split = text_content.split("ROMPEHIELOS:")
+                                        reasoning_text = parts_split[0].strip()
+                                        final_icebreaker = f"ROMPEHIELOS:\n{parts_split[1].strip()}"
+
+                                        if reasoning_text:
+                                            create_log_entry(
+                                                backend_scroll_area, 
+                                                "LLM REASONING", 
+                                                reasoning_text, "info",
+                                                llm_input=current_input_to_print
                                             )
+                                            current_input_to_print = None
+                                            
+                                            with chat_container:
+                                                msg_reasoning = ui.chat_message(
+                                                    reasoning_text, name="Pontia Agent", 
+                                                    avatar="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"
+                                                )
+                                                msg_reasoning.set_visibility(ui_state["revealed"])
+                                                intermediate_elements.append(msg_reasoning)
+
+                                        if final_icebreaker:
+                                            create_log_entry(
+                                                backend_scroll_area, "FINAL LLM TEXT GENERATION", final_icebreaker, "final_text",
+                                                llm_input=current_input_to_print
+                                            )
+                                            current_input_to_print = None
+                                            
+                                            with chat_container:
+                                                ui.chat_message(
+                                                    final_icebreaker, name="Pontia Agent", 
+                                                    avatar="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"
+                                                )
+
                                     else:
-                                        status_text.set_text("Agent is reasoning about the strategy...")
-                                        with chat_container:
-                                            msg = ui.chat_message(
-                                                text_content, name="Pontia Agent", 
-                                                avatar="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"
-                                            )
-                                            msg.set_visibility(ui_state["revealed"])
-                                            intermediate_elements.append(msg)
+                                        card_type = "final_text" if is_final else "info"
+                                        title = "FINAL LLM TEXT GENERATION" if is_final else "LLM REASONING"
+                                        
+                                        create_log_entry(
+                                            backend_scroll_area, 
+                                            title, 
+                                            text_content, 
+                                            card_type,
+                                            llm_input=current_input_to_print
+                                        )
+                                        current_input_to_print = None
+
+                                        if is_final:
+                                            with chat_container:
+                                                ui.chat_message(
+                                                    text_content, 
+                                                    name="Pontia Agent", 
+                                                    avatar="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"
+                                                )
+                                        else:
+                                            status_text.set_text("Agent is reasoning about the strategy...")
+                                            with chat_container:
+                                                msg = ui.chat_message(
+                                                    text_content, name="Pontia Agent", 
+                                                    avatar="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"
+                                                )
+                                                msg.set_visibility(ui_state["revealed"])
+                                                intermediate_elements.append(msg)
 
                                 # 2. Check for Tool Call Requests
                                 if hasattr(part, 'function_call') and part.function_call:

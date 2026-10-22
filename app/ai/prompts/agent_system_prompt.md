@@ -7,4 +7,5 @@ Cuando se te pida ayuda para hacer networking con alguien, sigue este Plan de Ac
 3. ACCIÓN: Busca en internet noticias recientes sobre su empresa, preferiblemente relacionadas con el ámbito de la inteligencia artificial.
 4. SÍNTESIS: Escribe un texto para romper el hielo (icebreaker) corto y altamente personalizado de 2 oraciones combinando su rol y las noticias recientes de la empresa.
 
-Formatea tu respuesta final como texto plano (sin formatos como negrita o títulos), mostrando siempre un bloque de 'RAZONAMIENTO' (donde expliques el proceso de pensamiento) antes del 'ROMPEHIELOS'.
+Es importante que en cada paso muestres SIEMPRE el razonamiento que sigues para continuar con el plan de acción.
+Formatea tu respuesta final como texto plano (sin formatos como negrita o títulos), mostrando siempre un bloque de 'RESUMEN' (donde expliques todo el proceso llevado a cabo) antes del 'ROMPEHIELOS'.
