@@ -25,20 +25,24 @@ def apply_theme():
     # Global Navigation Header
     with ui.header().classes(
         'items-center justify-between bg-dark border-b border-gray-700 p-4'):
-        ui.label(
-            'PontIA Connect: GenAI Engine'
-        ).classes('text-2xl font-bold text-primary')
+        
+        with ui.link(target='/').classes('flex items-center gap-2 no-underline'):
+            ui.icon('hub', color='primary', size='sm')
+            ui.label('PontIA Connect: GenAI Engine').classes('text-2xl font-bold text-primary')
         
         with ui.row().classes('gap-6'):
-            ui.link('1. Tokens', '/').classes(
-                'text-white text-lg font-semibold hover:text-secondary transition-colors no-underline'
-            )
-            ui.link('2. Arithmetic', '/arithmetic').classes(
-                'text-white text-lg font-semibold hover:text-secondary transition-colors no-underline'
-            )
-            ui.link('3. Generation', '/generator').classes(
-                'text-white text-lg font-semibold hover:text-secondary transition-colors no-underline'
-            )
-            ui.link('4. The Agent', '/agent').classes(
-                'text-white text-lg font-semibold hover:text-secondary transition-colors no-underline'
-            )
+            with ui.link(target='/agent').classes('flex items-center gap-1 text-white hover:text-secondary transition-colors no-underline'):
+                ui.icon('smart_toy', size='sm')
+                ui.label('Agent').classes('text-lg font-semibold')
+                
+            with ui.link(target='/generator').classes('flex items-center gap-1 text-white hover:text-secondary transition-colors no-underline'):
+                ui.icon('auto_awesome', size='sm')
+                ui.label('Generation').classes('text-lg font-semibold')
+                
+            with ui.link(target='/tokens').classes('flex items-center gap-1 text-white hover:text-secondary transition-colors no-underline'):
+                ui.icon('data_object', size='sm')
+                ui.label('Tokens').classes('text-lg font-semibold')
+                
+            with ui.link(target='/arithmetic').classes('flex items-center gap-1 text-white hover:text-secondary transition-colors no-underline'):
+                ui.icon('calculate', size='sm')
+                ui.label('Arithmetic').classes('text-lg font-semibold')

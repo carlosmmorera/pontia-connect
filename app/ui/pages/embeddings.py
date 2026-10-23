@@ -13,14 +13,14 @@ from app.ui.components import token_visualizer, vector_display
 
 def create_tokenization_page():
     """Builds the Tokenization and Embedding generation UI route."""
-    @ui.page('/')
+    @ui.page('/tokens')
     def tokenization_ui():
         apply_theme()
         embed_service_low = get_low_dim_service()
         embed_service_high = get_high_dim_service()
 
         with ui.column().classes('w-full max-w-4xl mx-auto p-6'):
-            ui.label("1. Tokens & Embeddings").classes(
+            ui.label("Tokens & Embeddings").classes(
                 'text-3xl font-extrabold text-white mb-6'
             )
             
@@ -96,7 +96,7 @@ def create_arithmetic_page():
         embed_service_low = get_low_dim_service()
 
         with ui.column().classes('w-full max-w-4xl mx-auto p-6'):
-            ui.label("2. Vector Arithmetic & Semantics").classes(
+            ui.label("Vector Arithmetic & Semantics").classes(
                 'text-3xl font-extrabold text-white mb-6'
             )
             ui.label("Reverse mapping is performed via Gensim local spatial indexing.").classes(

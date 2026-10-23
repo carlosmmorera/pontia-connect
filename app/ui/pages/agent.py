@@ -22,7 +22,7 @@ def create_agent_page():
         with ui.column().classes('w-full max-w-[90rem] mx-auto p-6'):
             with ui.row().classes('w-full justify-between items-center mb-6'):
                 ui.label(
-                    "3. Agents: The Illusion of Reasoning"
+                    "Agents: The Illusion of Reasoning"
                 ).classes('text-3xl font-extrabold text-white')
 
                 reveal_btn = ui.button(

@@ -11,7 +11,8 @@ from app.ui.pages import (
     create_tokenization_page,
     create_arithmetic_page,
     create_generator_page,
-    create_agent_page
+    create_agent_page,
+    create_home_page
 )
 from app.ai.dependencies import (
     get_low_dim_service, 
@@ -66,6 +67,7 @@ def shutdown_event():
 
 # Initialize the UI
 app.add_static_files('/static', 'app/static')
+create_home_page()
 create_tokenization_page()
 create_arithmetic_page()
 create_generator_page()
